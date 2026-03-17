@@ -2,3 +2,5 @@ filtered_matrices_mex/
 *.mtx
 *.tsv
 .idea/
+cache/
+*.h5ad
