@@ -1,4 +1,4 @@
-filtered_matrices_mex/
+PBMC/filtered_matrices_mex/
 *.mtx
 *.tsv
 .idea/
