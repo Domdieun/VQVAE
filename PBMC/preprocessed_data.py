@@ -1,9 +1,10 @@
 """
-1_preprocess_data.py
+step1_preprocess.py
 
 This script processes raw 10x Genomics single-cell RNA sequencing data (PBMCs).
 It performs data loading, QC visualization, biological filtering, normalization,
 and log-transformation. Finally, it tests the transformation and saves a clean checkpoint.
+It also exports a completely RAW, unfiltered dataset for experimental comparison.
 """
 
 import scanpy as sc
@@ -40,6 +41,15 @@ plt.legend()
 plt.show()
 
 # ==========================================
+# 2.5 Save Raw/Unfiltered Checkpoint (For Comparison)
+# ==========================================
+raw_filename = 'PBMC_68k_UNFILTERED.h5ad'
+print(f"\n[!] Saving UNFILTERED raw data to local file: {raw_filename}...")
+# This saves the matrix exactly as it is right now (68579 x 32738)
+anndata.write(raw_filename)
+print("Raw dataset saved!")
+
+# ==========================================
 # 3. Biological Filtering
 # ==========================================
 print("\nFiltering dataset...")
@@ -54,8 +64,6 @@ print("\nNormalizing data to 10,000 counts per cell...")
 sc.pp.normalize_total(anndata, target_sum=1e4)
 
 # VERIFICATION 1: Did normalization work?
-# If we sum up all the genes in a cell, it should now equal exactly 10,000.
-# (We check the first 3 cells as an example)
 cell_sums = np.asarray(anndata.X[:3, :].sum(axis=1)).flatten()
 print(f"--> Verification - Total counts for first 3 cells: {cell_sums} (Should be ~10000)")
 
@@ -63,8 +71,6 @@ print("\nLog-transforming data...")
 sc.pp.log1p(anndata)
 
 # VERIFICATION 2: Did log1p work?
-# Before log1p, a highly expressed gene might have a value of 4,000+.
-# Log(4000) squashes it down to roughly ~8.2. We check the absolute maximum value.
 max_val = anndata.X.max()
 print(f"--> Verification - Maximum expression value in entire matrix: {max_val:.2f} (Should be < 15)")
 
