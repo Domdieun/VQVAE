@@ -22,9 +22,10 @@ anndata = sc.read_10x_mtx(
 )
 print(f"Initial raw dataset shape: {anndata.shape}")
 
-# ==========================================
+
 # 2. Quality Control (QC) & Visualizations
-# ==========================================
+
+'''
 print("\nCalculating QC metrics...")
 sc.pp.calculate_qc_metrics(anndata, percent_top=None, log1p=False, inplace=True)
 
@@ -39,27 +40,26 @@ plt.xlabel('Number of Genes')
 plt.ylabel('Number of Cells')
 plt.legend()
 plt.show()
+'''
 
-# ==========================================
 # 2.5 Save Raw/Unfiltered Checkpoint (For Comparison)
-# ==========================================
+
 raw_filename = 'PBMC_68k_UNFILTERED.h5ad'
 print(f"\n[!] Saving UNFILTERED raw data to local file: {raw_filename}...")
 # This saves the matrix exactly as it is right now (68579 x 32738)
 anndata.write(raw_filename)
 print("Raw dataset saved!")
 
-# ==========================================
 # 3. Biological Filtering
-# ==========================================
+
 print("\nFiltering dataset...")
 sc.pp.filter_genes(anndata, min_cells=3)
 sc.pp.filter_cells(anndata, min_genes=200)
 sc.pp.filter_cells(anndata, max_genes=2500)
 
-# ==========================================
+
 # 4. Normalization, Log-Transformation & VERIFICATION
-# ==========================================
+
 print("\nNormalizing data to 10,000 counts per cell...")
 sc.pp.normalize_total(anndata, target_sum=1e4)
 
@@ -76,9 +76,8 @@ print(f"--> Verification - Maximum expression value in entire matrix: {max_val:.
 
 print(f"\nShape after all preprocessing: {anndata.shape}")
 
-# ==========================================
+
 # 5. Save Clean Checkpoint
-# ==========================================
 final_filename = 'PBMC_68k_filtered_normalized.h5ad'
 print(f"\nSaving preprocessed data to local file: {final_filename}...")
 anndata.write(final_filename)

@@ -6,50 +6,44 @@ print("Loading datasets... This might take a few seconds.\n")
 adata_clean = sc.read_h5ad('PBMC_68k_filtered_normalized.h5ad')
 adata_raw = sc.read_h5ad('PBMC_68k_UNFILTERED.h5ad')
 
-# ==========================================
-# PART 1: THE RAW, UNFILTERED DATA
-# ==========================================
-print("==========================================")
-print("         UNFILTERED RAW DATASET           ")
-print("==========================================\n")
 
-print("=== Overall Dataset Summary ===")
+# PART 1: THE RAW, UNFILTERED DATA
+
+
+print("\nUNFILTERED RAW DATASET")
+print("\nOverall Dataset Summary")
 print(adata_raw)
 
-print("\n=== First 5 Cells (Metadata) ===")
+print("\n First 5 Cells (Metadata) ")
 print(adata_raw.obs.head())
 
-print("\n=== Raw Expression Matrix (3x3 snippet) ===")
+print("\nRaw Expression Matrix (3x3 snippet)")
 # Raw data should have integer counts (e.g., 0, 1, 5, etc.)
 print(adata_raw.X[:3, :3].toarray() if hasattr(adata_raw.X, 'toarray') else adata_raw.X[:3, :3])
 
 
-# ==========================================
-# PART 2: THE CLEANED, NORMALIZED DATA
-# ==========================================
-print("\n\n==========================================")
-print("      CLEANED & NORMALIZED DATASET        ")
-print("==========================================\n")
 
-print("=== Overall Dataset Summary ===")
+# PART 2: THE CLEANED, NORMALIZED DATA
+
+print("\nCLEANED & NORMALIZED DATASET")
+
+print("\nOverall Dataset Summary")
 print(adata_clean)
 
-print("\n=== First 5 Cells (Metadata) ===")
+print("\nFirst 5 Cells (Metadata)")
 print(adata_clean.obs.head())
 
-print("\n=== Normalized Expression Matrix (3x3 snippet) ===")
+print("\nNormalized Expression Matrix (3x3 snippet)")
 # Clean data should have decimals from the log-transformation
 print(adata_clean.X[:3, :3].toarray() if hasattr(adata_clean.X, 'toarray') else adata_clean.X[:3, :3])
 
 import scanpy as sc
 import pandas as pd
 
-print("Loading cleaned dataset...")
+print("\nLoading cleaned dataset...")
 adata = sc.read_h5ad('PBMC_68k_filtered_normalized.h5ad')
 
-print("\n==========================================")
-print("     THE DATA MATRIX (20 Cells x 20 Genes)  ")
-print("==========================================\n")
+print("THE DATA MATRIX (20 Cells x 20 Genes)")
 
 # 1. Extract the 20x20 chunk of the matrix
 matrix_chunk = adata.X[:20, :20]

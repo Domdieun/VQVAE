@@ -18,9 +18,8 @@ anndata = sc.read_h5ad('PBMC_68k_filtered_normalized.h5ad')
 input_dimension = anndata.shape[1]
 print(f"Dataset successfully loaded! Matrix shape: {anndata.shape}")
 
-# ==========================================
+
 # Create PyTorch DataLoader
-# ==========================================
 print("Setting up PyTorch DataLoader...")
 
 class scRNADataset(Dataset):
