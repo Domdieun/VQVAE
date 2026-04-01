@@ -7,7 +7,7 @@ This script loads the trained VQ-VAE weights, passes the entire dataset
 through the network sequentially to get the discrete cluster ID for each cell,
 and then uses Scanpy to generate a 2D UMAP visualization of the clusters.
 """
-
+from datetime import datetime
 import os
 import torch
 import numpy as np
@@ -23,7 +23,7 @@ def main():
     # 1. Load the Data (Strictly Un-shuffled)
     print("Loading preprocessed AnnData...")
     # Update this path if your file is in a different folder
-    adata = sc.read_h5ad('PBMC_68k_filtered_normalized.h5ad')
+    adata = sc.read_h5ad('PBMC/PBMC_68k_filtered_normalized.h5ad')
 
     class scRNADatasetEval(Dataset):
         def __init__(self, anndata):
@@ -87,17 +87,38 @@ def main():
     unique_clusters = adata.obs['vq_cluster'].nunique()
     print(f"\nDiagnostic: Out of 512 available clusters, the VQ-VAE used {unique_clusters} unique clusters.")
 
-    # 5. Generate UMAP
-    print("\nCalculating PCA and UMAP geometry (this takes a minute)...")
+    # 5. Generate and Save UMAP
+    print("\nCalculating PCA and UMAP geometry...")
     sc.tl.pca(adata, svd_solver='arpack')
     sc.pp.neighbors(adata, n_neighbors=15, n_pcs=40)
     sc.tl.umap(adata)
 
-    print("Rendering plot...")
-    # If there are too many clusters, the legend gets massive, so we place labels directly on the data
-    sc.pl.umap(adata, color=['vq_cluster'], legend_loc='on data', title='VQ-VAE Learned Clusters')
+    #Create Directory for Results
+    output_dir = "cluster_results"
+    os.makedirs(output_dir, exist_ok=True)
 
-    print("Done!")
+    # Create a unique filename using the current date/time
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    save_path = f"vqvae_clusters_{timestamp}.png"
+
+    print(f"Rendering plot and saving to {output_dir}/{save_path}...")
+
+    # Save the plot
+    sc.pl.umap(
+        adata,
+        color=['vq_cluster'],
+        legend_loc='on data',
+        title='VQ-VAE Learned Clusters',
+        show=False,  # Don't stop the script to show the window
+        save=f"_{save_path}"  # Scanpy adds 'umap' prefix automatically
+    )
+
+    # Move the file into your specific folder (Scanpy defaults to a 'figures' folder)
+    if os.path.exists(f"figures/umap_{save_path}"):
+        os.rename(f"figures/umap_{save_path}", os.path.join(output_dir, save_path))
+
+    print(f"Done! Plot saved in {output_dir}")
+
 
 
 if __name__ == "__main__":
