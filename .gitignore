@@ -4,3 +4,6 @@ PBMC/filtered_matrices_mex/
 .idea/
 cache/
 *.h5ad
+lightning_logs/
+saved_models/
+**/__pycache__/

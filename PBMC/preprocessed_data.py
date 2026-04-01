@@ -11,9 +11,7 @@ import scanpy as sc
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ==========================================
 # 1. Load Data
-# ==========================================
 print("Loading raw data ...")
 anndata = sc.read_10x_mtx(
     './filtered_matrices_mex/hg19/',
@@ -54,8 +52,8 @@ print("Raw dataset saved!")
 
 print("\nFiltering dataset...")
 sc.pp.filter_genes(anndata, min_cells=3)
-sc.pp.filter_cells(anndata, min_genes=200)
-sc.pp.filter_cells(anndata, max_genes=2500)
+sc.pp.filter_cells(anndata, min_genes=190)
+sc.pp.filter_cells(anndata, max_genes=1500)
 
 
 # 4. Normalization, Log-Transformation & VERIFICATION

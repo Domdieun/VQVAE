@@ -12,7 +12,7 @@ import numpy as np
 
 print("Loading preprocessed dataset checkpoint...")
 # Load the perfectly clean dataset we generated in the first script
-anndata = sc.read_h5ad('PBMC_68k_filtered_normalized.h5ad')
+anndata = sc.read_h5ad('PBMC/PBMC_68k_filtered_normalized.h5ad')
 
 # Dynamically grab the exact number of genes
 input_dimension = anndata.shape[1]
