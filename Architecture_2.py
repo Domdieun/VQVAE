@@ -103,6 +103,8 @@ class VectorQuantizer(nn.Module):
         return z_q, vq_loss, encoding_indices
 
 
+
+
 # 2. ENCODER
 
 class Encoder(nn.Module):
@@ -225,3 +227,18 @@ class VQVAE(nn.Module):
         x_recon = self.decoder(z_q)                  # reconstruction
         return x_recon, vq_loss, encoding_indices
 
+    def encode(self, x: torch.Tensor):
+        """
+        Convenience method: returns only the discrete codebook indices.
+        Useful at inference time to get cell 'barcodes' in latent space.
+        """
+        z_e = self.encoder(x)
+        _, _, encoding_indices = self.vq(z_e)
+        return encoding_indices
+
+    def decode(self, indices: torch.Tensor):
+        """
+        Convenience method: reconstruct from codebook indices directly.
+        """
+        z_q = self.vq.embedding(indices)
+        return self.decoder(z_q)
