@@ -11,10 +11,10 @@ from torch.utils.data import Dataset, DataLoader
 import numpy as np
 
 print("Loading preprocessed dataset checkpoint...")
-# Load the perfectly clean dataset we generated in the first script
+# Load the data
 anndata = sc.read_h5ad('PBMC/PBMC_68k_filtered_normalized.h5ad')
 
-# Dynamically grab the exact number of genes
+# grab the exact number of genes
 input_dimension = anndata.shape[1]
 print(f"Dataset successfully loaded! Matrix shape: {anndata.shape}")
 
@@ -37,6 +37,7 @@ class scRNADataset(Dataset):
         return self.X[idx]
 
 dataset = scRNADataset(anndata)
+# batch size can be changed for optimisation, so far it is set to 256
 dataloader = DataLoader(dataset, batch_size=256, shuffle=True, drop_last=True)
 
 print("DataLoader is active and ready for the neural network!")

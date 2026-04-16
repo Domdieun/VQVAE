@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 
 """
-train_model.py
+train_model_1.py
 
 This script connects the DataLoader to the VQ-VAE architecture
 and runs the actual training loop across multiple epochs.
 """
 
-import torch
 import lightning.pytorch as pl
 from lightning.pytorch.callbacks import ModelCheckpoint
 
 # Import your data and architecture
 # (Make sure your files are named load_data.py and architecture.py)
 from PBMC.load_data import dataloader, input_dimension
-from Architecture_1 import scRNA_VQVAE
+from Archive.Architecture1.Architecture_1 import scRNA_VQVAE
 
 
 def main():

@@ -50,7 +50,7 @@ class Encoder(nn.Module):
                 nn.Linear(in_dim, h_dim),
                 nn.LayerNorm(h_dim),
                 nn.GELU(),
-                ResidualBlock1D(h_dim)
+                #ResidualBlock1D(h_dim)
             ])
             in_dim = h_dim
 

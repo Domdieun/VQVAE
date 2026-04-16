@@ -1,10 +1,11 @@
 PBMC/filtered_matrices_mex/
+Ath/data/
 *.mtx
 *.tsv
 .idea/
 cache/
 *.h5ad
-lightning_logs/
-saved_models/
+Archive/Architecture1/lightning_logs/
+Archive/Architecture1/saved_models/
 **/__pycache__/
-cluster_results/
+Archive/Architecture1/cluster_results/

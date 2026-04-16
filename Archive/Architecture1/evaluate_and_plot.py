@@ -23,7 +23,7 @@ def main():
     # 1. Load the Data (Strictly Un-shuffled)
     print("Loading preprocessed AnnData...")
     # Update this path if your file is in a different folder
-    adata = sc.read_h5ad('PBMC/PBMC_68k_filtered_normalized.h5ad')
+    adata = sc.read_h5ad('../../PBMC/PBMC_68k_filtered_normalized.h5ad')
 
     class scRNADatasetEval(Dataset):
         def __init__(self, anndata):
@@ -41,7 +41,7 @@ def main():
     eval_loader = DataLoader(eval_dataset, batch_size=256, shuffle=False, drop_last=False)
 
     # 2. Find and Load the Trained Model
-    ckpt_dir = './saved_models/'
+    ckpt_dir = 'saved_models/'
     if not os.path.exists(ckpt_dir):
         raise FileNotFoundError(f"Could not find {ckpt_dir}. Did the training script finish?")
 
