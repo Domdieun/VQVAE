@@ -1,0 +1,403 @@
+--- original/Architecture_4(2).py
++++ aligned/Architecture_4.py
+@@ -1,5 +1,5 @@
+ """
+-orthogonal_vqvae.py
++Architecture_4.py
+ 
+ A Vector Quantized Variational Autoencoder (VQ-VAE) for single-cell RNA-seq
+ with orthogonal codebook vector regularisation.
+--- original/compare_clusters_to_annotations_4(2).py
++++ aligned/compare_clusters_to_annotations_4.py
+@@ -1,5 +1,5 @@
+ """
+-compare_clusters_to_annotations_orthogonal.py
++compare_clusters_to_annotations_4.py
+ 
+ Compare orthogonal-codebook VQ-VAE cluster assignments against known cell type
+ annotations.
+@@ -9,7 +9,7 @@
+ - Arabidopsis / Ath
+ 
+ Run after:
+-    python extract_cluster_assignments_orthogonal.py
++    python extract_cluster_assignments_4.py
+ 
+ Outputs:
+ 1. merged_assignments_annotations_orthogonal_mse.csv
+@@ -27,7 +27,7 @@
+ import pandas as pd
+ from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score
+ 
+-from Pipeline1_MSE.orthogonal_vqvae_mse.load_data_split_orthogonal import project_path, PROJECT_ROOT
++from load_data_split_4 import project_path, PROJECT_ROOT
+ 
+ 
+ # CONFIG
+@@ -37,18 +37,18 @@
+ DATASET_CONFIGS = {
+     "PBMC": {
+         "assignments_csv": project_path(
+-            "../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+-        "annotation_path": project_path("../../PBMC/68k_pbmc_barcodes_annotation.tsv"),
++            "PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++        "annotation_path": project_path("PBMC/68k_pbmc_barcodes_annotation.tsv"),
+         "annotation_has_header": True,
+         "annotation_sep": "\t",
+         "annotation_names": None,
+         "annotation_barcode_col": "barcodes",
+         "annotation_label_col": "celltype",
+-        "output_dir": project_path("../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/cluster_annotation_comparison"),
++        "output_dir": project_path("PBMC/vqvae_runs/train_val_test_orthogonal_mse/cluster_annotation_comparison"),
+     },
+     "Ath": {
+         "assignments_csv": project_path(
+-            "../../Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++            "Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+         "annotation_path": project_path("Ath/Shahan_annotations.csv"),
+         "annotation_has_header": True,
+         "annotation_sep": ",",
+@@ -275,6 +275,7 @@
+     print(f"Annotation rows:   {len(annotations_df)}")
+     print(f"Merged rows before unknown filter: {len(merged_df)}")
+ 
++    merged_df = merged_df[merged_df[ANNOTATION_LABEL_COL].notna()].copy()
+     merged_df[ANNOTATION_LABEL_COL] = merged_df[ANNOTATION_LABEL_COL].astype(str)
+ 
+     if EXCLUDE_UNKNOWN:
+--- original/extract_cluster_assignments_4(2).py
++++ aligned/extract_cluster_assignments_4.py
+@@ -1,5 +1,5 @@
+ """
+-extract_cluster_assignments_orthogonal.py
++extract_cluster_assignments_4.py
+ 
+ Load a trained orthogonal-codebook VQ-VAE checkpoint, assign every cell to a
+ codebook entry, and save barcode-to-cluster assignments.
+@@ -7,6 +7,7 @@
+ THIS VERSION USES THE MSE ORTHOGONAL MODEL.
+ """
+ 
++import json
+ import os
+ 
+ import numpy as np
+@@ -15,37 +16,37 @@
+ import torch
+ from torch.utils.data import DataLoader, TensorDataset
+ 
+-from Pipeline1_MSE.orthogonal_vqvae_mse.load_data_split_orthogonal import project_path, PROJECT_ROOT
+-from orthogonal_vqvae import VQVAE
++from load_data_split_4 import project_path, PROJECT_ROOT
++from Architecture_4 import VQVAE
+ 
+ 
+ # CONFIG
+ 
+-DATASET_NAME = "Ath"  # change to "PBMC" or "Ath"
++DATASET_NAME = "PBMC"  # change to "PBMC" or "Ath"
+ 
+ # Clear single input path per dataset for this MSE model.
+ H5AD_PATHS = {
+-    "PBMC": project_path("../../PBMC/PBMC_68k_filtered_normalized.h5ad"),
+-    "Ath": project_path("../../Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
++    "PBMC": project_path("PBMC/PBMC_68k_filtered_normalized.h5ad"),
++    "Ath": project_path("Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
+ }
+ 
+ CHECKPOINT_PATHS = {
+-    "PBMC": project_path("../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
+-    "Ath": project_path("../../Ath/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
++    "PBMC": project_path("PBMC/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
++    "Ath": project_path("Ath/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
+ }
+ 
+ OUTPUT_CSVS = {
+     "PBMC": project_path(
+-        "../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++        "PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+     "Ath": project_path(
+-        "../../Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++        "Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+ }
+ 
+ H5AD_PATH = H5AD_PATHS[DATASET_NAME]
+ CHECKPOINT_PATH = CHECKPOINT_PATHS[DATASET_NAME]
+ OUTPUT_CSV = OUTPUT_CSVS[DATASET_NAME]
+ 
+-BATCH_SIZE = 512
++BATCH_SIZE = 256
+ DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+ 
+ 
+@@ -140,6 +141,20 @@
+     os.makedirs(os.path.dirname(OUTPUT_CSV), exist_ok=True)
+     assignments_df.to_csv(OUTPUT_CSV, index=False)
+ 
++    cluster_counts = assignments_df["cluster_index"].value_counts().sort_index()
++    total_codes = model.vq.num_embeddings
++    active_codes = int(cluster_counts.size)
++    usage = {
++        "total_codes": total_codes,
++        "active_codes": active_codes,
++        "usage_percent": 100.0 * active_codes / total_codes,
++        "cluster_counts": {str(int(k)): int(v) for k, v in cluster_counts.items()},
++    }
++    usage_path = os.path.join(os.path.dirname(OUTPUT_CSV), "codebook_usage_orthogonal_mse.json")
++    with open(usage_path, "w") as handle:
++        json.dump(usage, handle, indent=2)
++    print(f"Saved codebook utilization to: {usage_path}")
++
+     print(f"Saved assignments to: {OUTPUT_CSV}")
+     print("Cluster counts:")
+     print(assignments_df["cluster_index"].value_counts().sort_index())
+--- original/load_data_split_4(2).py
++++ aligned/load_data_split_4.py
+@@ -1,5 +1,5 @@
+ """
+-load_data_split_orthogonal.py
++load_data_split_4.py
+ 
+ Generic AnnData loader for the orthogonal-codebook VQ-VAE.
+ 
+@@ -67,8 +67,8 @@
+ 
+ # Clear single input path per dataset for the MSE orthogonal VQ-VAE.
+ H5AD_PATHS = {
+-    "PBMC": project_path("../../PBMC/PBMC_68k_filtered_normalized.h5ad"),
+-    "Ath": project_path("../../Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
++    "PBMC": project_path("PBMC/PBMC_68k_filtered_normalized.h5ad"),
++    "Ath": project_path("Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
+ }
+ 
+ H5AD_PATH = H5AD_PATHS[DATASET_NAME]
+--- original/optuna_vqvae_4(2).py
++++ aligned/optuna_vqvae_4.py
+@@ -1,7 +1,7 @@
+ """
+-optuna_vqvae_orthogonal_fixed_codebook.py
+-
+-Hyperparameter optimization for orthogonal_vqvae.py using Optuna.
++optuna_vqvae_4.py
++
++Hyperparameter optimization for Architecture_4.py using Optuna.
+ 
+ THIS VERSION USES MSE RECONSTRUCTION LOSS.
+ The codebook size is fixed per dataset and is not tuned by Optuna.
+@@ -13,7 +13,7 @@
+     codebook loss + commitment loss + weighted orthogonal regularisation loss
+ 
+ Run:
+-    python optuna_vqvae_orthogonal_fixed_codebook.py
++    python optuna_vqvae_4.py
+ """
+ 
+ import json
+@@ -25,30 +25,31 @@
+ import torch
+ import torch.nn.functional as F
+ from torch.optim import Adam
+-
+-from Pipeline1_MSE.orthogonal_vqvae_mse.load_data_split_orthogonal import (
++from torch.optim.lr_scheduler import ReduceLROnPlateau
++
++from load_data_split_4 import (
+     get_dataloaders,
+     project_path,
+     PROJECT_ROOT,
+ )
+-from orthogonal_vqvae import VQVAE
++from Architecture_4 import VQVAE
+ 
+ 
+ # CONFIG
+ 
+-DATASET_NAME = "Ath"  # change to "PBMC" or "Ath"
++DATASET_NAME = "PBMC"  # change to "PBMC" or "Ath"
+ 
+ # Clear single input path per dataset for this MSE model.
+ H5AD_PATHS = {
+-    "PBMC": project_path("../../PBMC/PBMC_68k_filtered_normalized.h5ad"),
+-    "Ath": project_path("../../Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
++    "PBMC": project_path("PBMC/PBMC_68k_filtered_normalized.h5ad"),
++    "Ath": project_path("Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
+ }
+ 
+ H5AD_PATH = H5AD_PATHS[DATASET_NAME]
+ 
+ OUTPUT_DIRS = {
+-    "PBMC": project_path("../../PBMC/vqvae_runs/optuna_orthogonal_mse"),
+-    "Ath": project_path("../../Ath/vqvae_runs/optuna_orthogonal_mse"),
++    "PBMC": project_path("PBMC/vqvae_runs/optuna_orthogonal_mse"),
++    "Ath": project_path("Ath/vqvae_runs/optuna_orthogonal_mse"),
+ }
+ 
+ OUTPUT_DIR = OUTPUT_DIRS[DATASET_NAME]
+@@ -61,8 +62,8 @@
+ NUM_EMBEDDINGS = FIXED_NUM_EMBEDDINGS_BY_DATASET[DATASET_NAME]
+ 
+ STUDY_NAME = f"{DATASET_NAME}_orthogonal_vqvae_mse_fixed_codebook"
+-N_TRIALS = 20
+-MAX_EPOCHS = 20
++N_TRIALS = 100
++MAX_EPOCHS = 30
+ PATIENCE = 8
+ RANDOM_SEED = 42
+ 
+@@ -180,6 +181,8 @@
+         weight_decay=weight_decay,
+     )
+ 
++    scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=5)
++
+     best_val_loss = float("inf")
+     best_train_loss = None
+     best_val_recon_loss = None
+@@ -193,6 +196,7 @@
+     for epoch in range(1, MAX_EPOCHS + 1):
+         train_metrics = train_one_epoch(model, train_loader, optimizer)
+         val_metrics = evaluate_loss(model, val_loader)
++        scheduler.step(val_metrics["total"])
+ 
+         train_history.append(train_metrics)
+         val_history.append(val_metrics)
+--- original/train_model_4(2).py
++++ aligned/train_model_4.py
+@@ -1,5 +1,5 @@
+ """
+-train_model_orthogonal.py
++train_model_4.py
+ 
+ Train the final orthogonal-codebook VQ-VAE after Optuna.
+ 
+@@ -7,7 +7,7 @@
+ Use normalized/log1p h5ad files.
+ 
+ Run after:
+-    python optuna_vqvae_orthogonal_fixed_codebook.py
++    python optuna_vqvae_4.py
+ 
+ or manually edit HYPERPARAMETERS below.
+ """
+@@ -21,23 +21,23 @@
+ from torch.optim import Adam
+ from torch.optim.lr_scheduler import ReduceLROnPlateau
+ 
+-from Pipeline1_MSE.orthogonal_vqvae_mse.load_data_split_orthogonal import (
++from load_data_split_4 import (
+     get_dataloaders,
+     set_seed,
+     project_path,
+     PROJECT_ROOT,
+ )
+-from Pipeline1_MSE.orthogonal_vqvae_mse.orthogonal_vqvae import VQVAE
++from Architecture_4 import VQVAE
+ 
+ 
+ # CONFIG
+ 
+-DATASET_NAME = "Ath"  # change to "PBMC" or "Ath"
++DATASET_NAME = "PBMC"  # change to "PBMC" or "Ath"
+ 
+ # Clear single input path per dataset for this MSE model.
+ H5AD_PATHS = {
+-    "PBMC": project_path("../../PBMC/PBMC_68k_filtered_normalized.h5ad"),
+-    "Ath": project_path("../../Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
++    "PBMC": project_path("PBMC/PBMC_68k_filtered_normalized.h5ad"),
++    "Ath": project_path("Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
+ }
+ 
+ H5AD_PATH = H5AD_PATHS[DATASET_NAME]
+@@ -76,8 +76,8 @@
+     },
+ }
+ 
+-NUM_EPOCHS = 50
+-PATIENCE = 10
++NUM_EPOCHS = 30
++PATIENCE = 8
+ 
+ OUTPUT_DIR = project_path(f"{DATASET_NAME}/vqvae_runs/train_val_test_orthogonal_mse")
+ CHECKPOINT_PATH = os.path.join(OUTPUT_DIR, "best_vqvae_orthogonal_mse_checkpoint.pth")
+@@ -232,7 +232,7 @@
+         lr=learning_rate,
+         weight_decay=weight_decay,
+     )
+-    scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=3)
++    scheduler = ReduceLROnPlateau(optimizer, mode="min", factor=0.5, patience=5)
+ 
+     history = {
+         "train_total": [],
+--- original/visualize_cluster_assignments_4(2).py
++++ aligned/visualize_cluster_assignments_4.py
+@@ -1,5 +1,5 @@
+ """
+-visualize_cluster_assignments_orthogonal.py
++visualize_cluster_assignments_4.py
+ 
+ Create UMAP visualizations for a trained orthogonal-codebook VQ-VAE model.
+ 
+@@ -21,50 +21,50 @@
+ import torch
+ from torch.utils.data import DataLoader, TensorDataset
+ 
+-from Pipeline1_MSE.orthogonal_vqvae_mse.load_data_split_orthogonal import project_path, PROJECT_ROOT
+-from Pipeline1_MSE.orthogonal_vqvae_mse.orthogonal_vqvae import VQVAE
++from load_data_split_4 import project_path, PROJECT_ROOT
++from Architecture_4 import VQVAE
+ 
+ 
+ # CONFIG
+ 
+-DATASET_NAME = "Ath"  # change to "PBMC" or "Ath"
++DATASET_NAME = "PBMC"  # change to "PBMC" or "Ath"
+ 
+ # Clear single input path per dataset for this MSE model.
+ H5AD_PATHS = {
+-    "PBMC": project_path("../../PBMC/PBMC_68k_filtered_normalized.h5ad"),
+-    "Ath": project_path("../../Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
++    "PBMC": project_path("PBMC/PBMC_68k_filtered_normalized.h5ad"),
++    "Ath": project_path("Ath/combined_cellbender_filter_matrix_main_normalized.h5ad"),
+ }
+ 
+ DATASET_CONFIGS = {
+     "PBMC": {
+         "h5ad_path": H5AD_PATHS["PBMC"],
+         "checkpoint_path": project_path(
+-            "../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
++            "PBMC/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
+         "assignments_csv": project_path(
+-            "../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+-        "annotation_path": project_path("../../PBMC/68k_pbmc_barcodes_annotation.tsv"),
++            "PBMC/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++        "annotation_path": project_path("PBMC/68k_pbmc_barcodes_annotation.tsv"),
+         "annotation_has_header": True,
+         "annotation_sep": "\t",
+         "annotation_names": None,
+         "annotation_barcode_col": "barcodes",
+         "annotation_cell_type_col": "celltype",
+         "annotation_label": "PBMC cell type annotation",
+-        "output_dir": project_path("../../PBMC/vqvae_runs/train_val_test_orthogonal_mse/cluster_visualization"),
++        "output_dir": project_path("PBMC/vqvae_runs/train_val_test_orthogonal_mse/cluster_visualization"),
+     },
+     "Ath": {
+         "h5ad_path": H5AD_PATHS["Ath"],
+         "checkpoint_path": project_path(
+-            "../../Ath/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
++            "Ath/vqvae_runs/train_val_test_orthogonal_mse/best_vqvae_orthogonal_mse_checkpoint.pth"),
+         "assignments_csv": project_path(
+-            "../../Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
+-        "annotation_path": project_path("../../Ath/Shahan_annotation.csv"),
++            "Ath/vqvae_runs/train_val_test_orthogonal_mse/barcode_cluster_assignments_final_optuna_orthogonal_mse.csv"),
++        "annotation_path": project_path("Ath/Shahan_annotation.csv"),
+         "annotation_has_header": True,
+         "annotation_sep": ",",
+         "annotation_names": None,
+         "annotation_barcode_col": "cell_barcode_id",
+         "annotation_cell_type_col": "celltype.anno",
+         "annotation_label": "Shahan cell type annotation",
+-        "output_dir": project_path("../../Ath/vqvae_runs/train_val_test_orthogonal_mse/cluster_visualization"),
++        "output_dir": project_path("Ath/vqvae_runs/train_val_test_orthogonal_mse/cluster_visualization"),
+     },
+ }
+ 
